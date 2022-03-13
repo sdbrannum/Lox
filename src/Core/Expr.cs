@@ -50,8 +50,8 @@ public record Grouping : Expr
 
 public record Literal : Expr
 {
-    public object Value { get; set; } = default!;
-    public Literal(object val)
+    public object? Value { get; set; } = default!;
+    public Literal(object? val)
     {
         this.Value = val;
     }

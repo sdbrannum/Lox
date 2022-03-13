@@ -36,18 +36,36 @@ public static class Repl
   
     private static void Run(string source)
     {
+        
         // scanner is the lexer
         var lexer = new Lexer(source);
         var tokens = lexer.ScanTokens();
-        foreach (var token in tokens) Console.WriteLine(token);
+        var parser = new Parser(tokens);
+        var expr = parser.Parse();
+
+        if (_hadError) return;
+        Console.WriteLine(new AstPrinter().Print(expr));
+        //foreach (var token in tokens) Console.WriteLine(token);
     }
   
     public static void Error(int line, string message)
     {
         Report(line, null, message);
     }
-  
-    private static void Report(int line, string where, string message)
+
+    public static void Error(Token token, string message)
+    {
+        if (token.Type == TokenType.EOF)
+        {
+            Repl.Report(token.Line, $" at end", message);
+        }
+        else
+        {
+            Repl.Report(token.Line, $" at '{token.Lexeme}'", message);
+        }
+    }
+
+    public static void Report(int line, string? where, string message)
     {
         Debug.WriteLine($"[line: {line}] Error {where}: {message}");
         _hadError = true;

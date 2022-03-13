@@ -15,7 +15,7 @@ public class Lexer
 
     private bool IsAtEnd => _current >= _source.Length;
 
-    public IEnumerable<Token> ScanTokens()
+    public IList<Token> ScanTokens()
     {
         while (!IsAtEnd)
         {
