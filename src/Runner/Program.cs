@@ -1,8 +1,5 @@
 ﻿using Core;
 
-Console.Write(">");
-Console.ReadLine();
-
 switch (args.Length)
 {
     case > 1:

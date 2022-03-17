@@ -6,6 +6,7 @@ namespace Core;
 public static class Repl
 {
     static bool _hadError = false;
+    static bool _hadRuntimeError = false;
 
     public static void RunFile(string path)
     {
@@ -15,6 +16,10 @@ public static class Repl
         if (_hadError)
         {
             Environment.Exit(65);
+        }
+        if (_hadRuntimeError)
+        {
+            Environment.Exit(70);
         }
     }
   
@@ -44,6 +49,10 @@ public static class Repl
         var expr = parser.Parse();
 
         if (_hadError) return;
+
+        var interpreter = new Interpreter();
+        interpreter.Interpret(expr);
+
         Console.WriteLine(new AstPrinter().Print(expr));
         //foreach (var token in tokens) Console.WriteLine(token);
     }
@@ -63,6 +72,13 @@ public static class Repl
         {
             Repl.Report(token.Line, $" at '{token.Lexeme}'", message);
         }
+    }
+
+    public static void RuntimeError(RuntimeException ex)
+    {
+        Console.WriteLine(ex.Message);
+        Console.WriteLine($"[line ${ex.token.Line}]");
+        _hadRuntimeError = true;
     }
 
     public static void Report(int line, string? where, string message)
