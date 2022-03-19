@@ -2,7 +2,7 @@
 
 namespace Core;
 
-public class AstPrinter : Visitor<string>
+public class AstPrinter : Expr.Visitor<string>
 {
         public string Print(Expr expr)
         {
@@ -10,24 +10,34 @@ public class AstPrinter : Visitor<string>
         }
 
 
-        public string VisitBinary(Binary expr)
+        public string VisitBinaryExpr(BinaryExpr expr)
         {
                 return Parenthesize(expr.Op.Lexeme, expr.Left, expr.Right);
         }
 
-        public string VisitGrouping(Grouping expr)
+        public string VisitGroupingExpr(GroupingExpr expr)
         {
                 return Parenthesize("group", expr.Expression);
         }
 
-        public string VisitLiteral(Literal expr)
+        public string VisitLiteralExpr(LiteralExpr expr)
         {
                 return expr.Value?.ToString() ?? "nil";
         }
 
-        public string VisitUnary(Unary expr)
+        public string VisitUnaryExpr(UnaryExpr expr)
         {
                 return Parenthesize(expr.Op.Lexeme, expr.Right);
+        }
+
+        public string VisitVariableExpr(VariableExpr expr)
+        {
+                return null;
+        }
+
+        public string VisitAssignExpr(AssignExpr expr)
+        {
+                return null;
         }
 
         private string Parenthesize(string name, params Expr[] exprs)

@@ -17,12 +17,12 @@ switch (args.Length)
 
 void TestPrinter()
 {
-    var exp = new Binary(
-        new Unary(
+    var exp = new BinaryExpr(
+        new UnaryExpr(
             new Token(TokenType.MINUS, "-", null, 1),
-            new Literal(123)),
+            new LiteralExpr(123)),
         new Token(TokenType.STAR, "*", null, 1),
-        new Grouping(new Literal(45.67)));
+        new GroupingExpr(new LiteralExpr(45.67)));
 
     Console.Write(new AstPrinter().Print(exp));
 }

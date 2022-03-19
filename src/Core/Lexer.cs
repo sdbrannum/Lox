@@ -184,7 +184,7 @@ public class Lexer
         Advance();
         
         // trim the surround quotes
-        var val = _source.Substring(_start + 1, (_current - 1) - _start);
+        var val = _source.Substring(_start + 1, (_current - 1) - (_start + 1));
         AddToken(TokenType.STRING, val);
     }
 

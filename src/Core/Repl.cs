@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 
 namespace Core;
 
 public static class Repl
 {
-    static bool _hadError = false;
-    static bool _hadRuntimeError = false;
+    private static bool _hadError;
+    private static bool _hadRuntimeError;
 
     public static void RunFile(string path)
     {
@@ -17,12 +16,13 @@ public static class Repl
         {
             Environment.Exit(65);
         }
+
         if (_hadRuntimeError)
         {
             Environment.Exit(70);
         }
     }
-  
+
     public static void RunPrompt()
     {
         for (;;)
@@ -33,30 +33,32 @@ public static class Repl
             {
                 break;
             }
-  
+
             Run(line);
             _hadError = false;
         }
     }
-  
+
     private static void Run(string source)
     {
-        
         // scanner is the lexer
         var lexer = new Lexer(source);
         var tokens = lexer.ScanTokens();
         var parser = new Parser(tokens);
-        var expr = parser.Parse();
+        var statements = parser.Parse();
 
-        if (_hadError) return;
+        if (_hadError)
+        {
+            return;
+        }
 
         var interpreter = new Interpreter();
-        interpreter.Interpret(expr);
+        interpreter.Interpret(statements);
 
-        Console.WriteLine(new AstPrinter().Print(expr));
+        //Console.WriteLine(new AstPrinter().Print(statements));
         //foreach (var token in tokens) Console.WriteLine(token);
     }
-  
+
     public static void Error(int line, string message)
     {
         Report(line, null, message);
@@ -66,11 +68,11 @@ public static class Repl
     {
         if (token.Type == TokenType.EOF)
         {
-            Repl.Report(token.Line, $" at end", message);
+            Report(token.Line, " at end", message);
         }
         else
         {
-            Repl.Report(token.Line, $" at '{token.Lexeme}'", message);
+            Report(token.Line, $" at '{token.Lexeme}'", message);
         }
     }
 
@@ -83,7 +85,7 @@ public static class Repl
 
     public static void Report(int line, string? where, string message)
     {
-        Debug.WriteLine($"[line: {line}] Error {where}: {message}");
+        Console.WriteLine($"[line: {line}] Error {where}: {message}");
         _hadError = true;
     }
 }

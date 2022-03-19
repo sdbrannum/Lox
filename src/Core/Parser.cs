@@ -10,12 +10,17 @@
             this._tokens = tokens;
         }
 
-        public Expr? Parse()
+        public List<Stmt> Parse()
         {
             try
             {
-                return Expression();
-            }
+                var statements = new List<Stmt>();
+                while(!IsAtEnd())
+                {
+                    statements.Add(Declaration());
+                }
+                return statements;
+             }
             catch (ParserException ex)
             {
                 return null;
@@ -24,7 +29,7 @@
 
         private Expr Expression()
         {
-            return Equality();
+            return Assignment();
         }
 
         private Expr Equality()
@@ -35,10 +40,32 @@
             {
                 var op = Previous();
                 var right = Comparison();
-                expr = new Binary(expr, op, right);
+                expr = new BinaryExpr(expr, op, right);
             }
             return expr;
         }
+
+        private Expr Assignment()
+        {
+            var expr = Equality();
+
+            if (Match(TokenType.EQUAL))
+            {
+                var equals = Previous();
+                var val = Assignment();
+
+                if (expr is VariableExpr exprVar)
+                {
+                    var name = exprVar.Name;
+                    return new AssignExpr(name, val);
+                }
+
+                Error(equals, "Invalid assignment target");
+            }
+
+            return expr;
+        }
+        
 
         private Expr Comparison()
         {
@@ -48,7 +75,7 @@
             {
                 var op = Previous();
                 var right = Term();
-                expr = new Binary(expr, op, right);
+                expr = new BinaryExpr(expr, op, right);
             }
             return expr;
         }
@@ -61,7 +88,7 @@
             {
                 var op = Previous();
                 var right = Factor();
-                expr = new Binary(expr, op, right);
+                expr = new BinaryExpr(expr, op, right);
             }
             return expr;
         }
@@ -73,7 +100,7 @@
             {
                 var op = Previous();
                 var right = Unary();
-                expr = new Binary(expr, op, right);
+                expr = new BinaryExpr(expr, op, right);
             }
             return expr;
         }
@@ -84,30 +111,97 @@
             {
                 var op = Previous();
                 var right = Unary();
-                return new Unary(op, right);
+                return new UnaryExpr(op, right);
             }
             return Primary();
         }
 
         private Expr Primary()
         {
-            if (Match(TokenType.FALSE)) return new Literal(false);
-            if (Match(TokenType.TRUE)) return new Literal(true);
-            if (Match(TokenType.NIL)) return new Literal(null);
+            if (Match(TokenType.FALSE)) return new LiteralExpr(false);
+            if (Match(TokenType.TRUE)) return new LiteralExpr(true);
+            if (Match(TokenType.NIL)) return new LiteralExpr(null);
 
             if (Match(TokenType.NUMBER, TokenType.STRING))
             {
-                return new Literal(Previous().Literal);
+                return new LiteralExpr(Previous().Literal);
+            }
+
+            if (Match(TokenType.IDENTIFIER))
+            {
+                return new VariableExpr(Previous());
             }
 
             if (Match(TokenType.LEFT_PAREN))
             {
                 var expr = Expression();
                 Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
-                return new Grouping(expr);
+                return new GroupingExpr(expr);
             }
 
             throw Error(Peek(), "Expect expression");
+        }
+
+        private Stmt Statement()
+        {
+            if (Match(TokenType.PRINT)) return PrintStmt();
+            if (Match(TokenType.LEFT_BRACE)) return new BlockStmt(Block());
+            return ExpressionStmt();
+        }
+
+        private Stmt Declaration()
+        {
+            try
+            {
+                if (Match(TokenType.VAR)) return VarDeclaration();
+
+                return Statement();
+            } catch(ParserException e)
+            {
+                Synchronize();
+                return null;
+            }
+        }
+
+        private Stmt ExpressionStmt()
+        {
+            var expr = Expression();
+            Consume(TokenType.SEMICOLON, "Expect ';' after expression");
+            return new ExpressionStmt(expr);
+        }
+
+        private Stmt PrintStmt()
+        {
+            Expr val = Expression();
+            Consume(TokenType.SEMICOLON, "Expect ';' after value.");
+            return new PrintStmt(val);
+        }
+
+        private Stmt VarDeclaration()
+        {
+            var name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+            Expr initializer = null;
+            if (Match(TokenType.EQUAL))
+            {
+                initializer = Expression();
+            }
+
+            Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration");
+            return new VarStmt(name, initializer);
+        }
+
+        private IEnumerable<Stmt> Block()
+        {
+            List<Stmt> statements = new();
+
+            while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+            {
+                statements.Add(Declaration());
+            }
+
+            Consume(TokenType.RIGHT_BRACE, "Expect '}' after block");
+            return statements;
         }
 
         private Token Consume(TokenType tokenType, string message)
