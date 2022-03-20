@@ -32,12 +32,17 @@ public class AstPrinter : Expr.Visitor<string>
 
         public string VisitVariableExpr(VariableExpr expr)
         {
-                return null;
+                throw new NotImplementedException();
         }
 
         public string VisitAssignExpr(AssignExpr expr)
         {
-                return null;
+                throw new NotImplementedException();
+        }
+
+        public string VisitLogicalExpr(LogicalExpr expr)
+        {
+                throw new NotImplementedException();
         }
 
         private string Parenthesize(string name, params Expr[] exprs)

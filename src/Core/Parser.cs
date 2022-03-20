@@ -32,6 +32,34 @@
             return Assignment();
         }
 
+        private Expr Or()
+        {
+            var expr = And();
+            while (Match(TokenType.OR))
+            {
+                var op = Previous();
+                var right = And();
+                expr = new LogicalExpr(expr, op, right);
+            }
+
+            return expr;
+        }
+
+        private Expr And()
+        {
+            var expr = Equality();
+
+            while (Match(TokenType.AND))
+            {
+                var op = Previous();
+                var right = Equality();
+                expr = new LogicalExpr(expr, op, right);
+            }
+
+            return expr;
+        }
+        
+
         private Expr Equality()
         {
             var expr = Comparison();
@@ -47,7 +75,7 @@
 
         private Expr Assignment()
         {
-            var expr = Equality();
+            var expr = Or();
 
             if (Match(TokenType.EQUAL))
             {
@@ -144,6 +172,7 @@
 
         private Stmt Statement()
         {
+            if (Match(TokenType.IF)) return IfStmt();
             if (Match(TokenType.PRINT)) return PrintStmt();
             if (Match(TokenType.LEFT_BRACE)) return new BlockStmt(Block());
             return ExpressionStmt();
@@ -168,6 +197,22 @@
             var expr = Expression();
             Consume(TokenType.SEMICOLON, "Expect ';' after expression");
             return new ExpressionStmt(expr);
+        }
+
+        private Stmt IfStmt()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'");
+            var condition = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition");
+
+            var thenBranch = Statement();
+            Stmt? elseBranch = null;
+            if (Match(TokenType.ELSE))
+            {
+                elseBranch = Statement();
+            }
+
+            return new IfStmt(condition, thenBranch, elseBranch);
         }
 
         private Stmt PrintStmt()

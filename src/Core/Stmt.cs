@@ -19,6 +19,7 @@ namespace Core
             T VisitVarStmt(VarStmt stmt);
 
             T VisitBlockStmt(BlockStmt stmt);
+            T VisitIfStmt(IfStmt stmt);
         }
     }
 
@@ -82,6 +83,23 @@ namespace Core
         public override T Accept<T>(Visitor<T> visitor)
         {
             return visitor.VisitBlockStmt(this);
+        }
+    }
+
+    public record IfStmt : Stmt
+    {
+        public Expr Condition { get; init; }
+        public Stmt ThenBranch { get; init; }
+        public Stmt? ElseBranch { get; init; }
+        public IfStmt(Expr condition, Stmt thenBranch, Stmt? elseBranch)
+        {
+            this.Condition = condition;
+            this.ThenBranch = thenBranch;
+            this.ElseBranch = elseBranch;
+        }
+        public override T Accept<T>(Visitor<T> visitor)
+        {
+            return visitor.VisitIfStmt(this);
         }
     }
     

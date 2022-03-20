@@ -17,6 +17,7 @@ public abstract record Expr
 
         T VisitVariableExpr(VariableExpr expr);
         T VisitAssignExpr(AssignExpr expr);
+        T VisitLogicalExpr(LogicalExpr expr);
     }
 }
 
@@ -114,3 +115,21 @@ public record AssignExpr : Expr
     }
 }
 
+public record LogicalExpr : Expr
+{
+    public Expr Left { get; init; }
+    public Token Op { get; init; }
+    public Expr Right { get; init; }
+
+    public LogicalExpr(Expr left, Token op, Expr right)
+    {
+        this.Left = left;
+        this.Op = op;
+        this.Right = right;
+    }
+
+    public override T Accept<T>(Visitor<T> visitor)
+    {
+        return visitor.VisitLogicalExpr(this);
+    }
+}

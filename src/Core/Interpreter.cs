@@ -83,6 +83,18 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>
         return null;
     }
 
+    public object VisitIfStmt(IfStmt stmt)
+    {
+        if (IsTruthy(Evaluate(stmt.Condition)))
+        {
+            Execute(stmt.ThenBranch);
+        } else if (stmt.ElseBranch != null)
+        {
+          Execute(stmt.ElseBranch);  
+        } 
+        return null;
+    }
+
     public object VisitPrintStmt(PrintStmt stmt)
     {
         var val = Evaluate(stmt.Expression);
@@ -138,6 +150,20 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>
         object val = Evaluate(expr.Value);
         _loxEnvironment.Assign(expr.Name, val);
         return val;
+    }
+
+    public object VisitLogicalExpr(LogicalExpr expr)
+    {
+        object left = Evaluate(expr.Left);
+        if (expr.Op.Type == TokenType.OR)
+        {
+            if (IsTruthy(left)) return left;
+        }
+        else
+        {
+            if (!IsTruthy(left)) return left;
+        }
+        return Evaluate(expr.Right);
     }
 
     public void Interpret(List<Stmt> statements)
