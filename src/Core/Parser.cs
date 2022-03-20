@@ -172,8 +172,10 @@
 
         private Stmt Statement()
         {
+            if (Match((TokenType.FOR))) return ForStmt();
             if (Match(TokenType.IF)) return IfStmt();
             if (Match(TokenType.PRINT)) return PrintStmt();
+            if (Match(TokenType.WHILE)) return WhileStmt();
             if (Match(TokenType.LEFT_BRACE)) return new BlockStmt(Block());
             return ExpressionStmt();
         }
@@ -220,6 +222,66 @@
             Expr val = Expression();
             Consume(TokenType.SEMICOLON, "Expect ';' after value.");
             return new PrintStmt(val);
+        }
+
+        private Stmt WhileStmt()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+            var condition = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+            var body = Statement();
+            return new WhileStmt(condition, body);
+        }
+
+        private Stmt ForStmt()
+        {
+            Consume(TokenType.LEFT_PAREN, "Exepct '(' after 'for'");
+            Stmt init;
+            if (Match(TokenType.SEMICOLON))
+            {
+                init = null;
+            } else if (Match(TokenType.VAR))
+            {
+                init = VarDeclaration();
+            }
+            else
+            {
+                init = ExpressionStmt();
+            }
+
+            Expr condition = null;
+            if (!Check(TokenType.SEMICOLON))
+            {
+                condition = Expression();
+            }
+
+            Consume(TokenType.SEMICOLON, "Expect ';' after loop condition");
+
+            Expr incr = null;
+            if (!Check(TokenType.RIGHT_PAREN))
+            {
+                incr = Expression();
+            }
+
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after clauses.");
+            var body = Statement();
+
+            if (incr != null)
+            {
+                var bodyStatments = new List<Stmt>() { body, new ExpressionStmt(incr) };
+                body = new BlockStmt(bodyStatments);
+            }
+
+            if (condition == null) condition = new LiteralExpr(true);
+            body = new WhileStmt(condition, body);
+
+            if (init != null)
+            {
+                var bodyStatments = new List<Stmt>() { init, body }; 
+                body = new BlockStmt(bodyStatments);
+            }
+            
+            return body;
         }
 
         private Stmt VarDeclaration()

@@ -120,6 +120,15 @@ public class Interpreter : Expr.Visitor<object>, Stmt.Visitor<object>
         return null;
     }
 
+    public object VisitWhileStmt(WhileStmt stmt)
+    {
+        while (IsTruthy(Evaluate(stmt.Condition)))
+        {
+            Execute(stmt.Body);
+        }
+        return null;
+    }
+
     public void ExecuteBlock(IEnumerable<Stmt> statements, LoxEnvironment env)
     {
         var previousEnv = this._loxEnvironment;

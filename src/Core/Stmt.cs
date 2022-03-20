@@ -20,50 +20,30 @@ namespace Core
 
             T VisitBlockStmt(BlockStmt stmt);
             T VisitIfStmt(IfStmt stmt);
+            T VisitWhileStmt(WhileStmt stmt);
         }
     }
 
-    public record ExpressionStmt : Stmt
+    
+
+    public record ExpressionStmt(Expr Expression) : Stmt
     {
-        public Expr Expression { get; init; } = default!;
-
-        public ExpressionStmt(Expr expression)
-        {
-            this.Expression = expression;
-        }
-
         public override T Accept<T>(Visitor<T> visitor)
         {
              return visitor.VisitExpressionStmt(this);
         }
     }
 
-    public record PrintStmt : Stmt 
+    public record PrintStmt(Expr Expression) : Stmt 
     {
-        public Expr Expression { get; init; } = default!;
-
-        public PrintStmt(Expr expression)
-        {
-            this.Expression = expression;
-        }
-
         public override T Accept<T>(Visitor<T> visitor)
         {
             return visitor.VisitPrintStmt(this);
         }
     }
 
-    public record VarStmt : Stmt 
+    public record VarStmt(Token Name, Expr Initializer) : Stmt 
     {
-        public Token Name { get; init; } = default!;
-        public Expr Initializer { get; init; } = default!;
-        
-        public VarStmt(Token name, Expr initializer)
-        {
-            this.Name = name;
-            this.Initializer = initializer;
-        }
-
         public override T Accept<T>(Visitor<T> visitor)
         {
             return visitor.VisitVarStmt(this);
@@ -71,36 +51,27 @@ namespace Core
     }
 
 
-    public record BlockStmt : Stmt
+    public record BlockStmt(IEnumerable<Stmt> Statements) : Stmt
     {
-        public IEnumerable<Stmt> Statements { get; init; }
-
-        public BlockStmt(IEnumerable<Stmt> statements)
-        {
-            this.Statements = statements;
-        }
-
         public override T Accept<T>(Visitor<T> visitor)
         {
             return visitor.VisitBlockStmt(this);
         }
     }
 
-    public record IfStmt : Stmt
+    public record IfStmt(Expr Condition, Stmt ThenBranch, Stmt? ElseBranch) : Stmt
     {
-        public Expr Condition { get; init; }
-        public Stmt ThenBranch { get; init; }
-        public Stmt? ElseBranch { get; init; }
-        public IfStmt(Expr condition, Stmt thenBranch, Stmt? elseBranch)
-        {
-            this.Condition = condition;
-            this.ThenBranch = thenBranch;
-            this.ElseBranch = elseBranch;
-        }
         public override T Accept<T>(Visitor<T> visitor)
         {
             return visitor.VisitIfStmt(this);
         }
     }
     
+    public record WhileStmt(Expr Condition, Stmt Body) : Stmt
+    {
+        public override T Accept<T>(Visitor<T> visitor)
+        {
+            return visitor.VisitWhileStmt(this);
+        }
+    }
 }
